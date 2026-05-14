@@ -77,10 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Publicação independente sobre tecnologia, design, negócios e o ofício de pensar. Pensamento longo num mundo curto." },
       { name: "author", content: "The Newsprint" },
       { property: "og:title", content: "The Newsprint — Um diário de ideias" },
-      { property: "og:description", content: "Publicação independente sobre tecnologia, design, negócios e o ofício de pensar." },
+      { property: "og:description", content: "Publicação independente sobre tecnologia, design, negócios e o ofício de pensar. Pensamento longo num mundo curto." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "The Newsprint — Um diário de ideias" },
+      { name: "twitter:description", content: "Publicação independente sobre tecnologia, design, negócios e o ofício de pensar. Pensamento longo num mundo curto." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/41322148-d3ba-4dec-91c5-f0a42967dae9/id-preview-fb145de0--754780b4-0068-48b9-b3b7-6143c502c08c.lovable.app-1778741597390.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/41322148-d3ba-4dec-91c5-f0a42967dae9/id-preview-fb145de0--754780b4-0068-48b9-b3b7-6143c502c08c.lovable.app-1778741597390.png" },
     ],
     links: [
       {
