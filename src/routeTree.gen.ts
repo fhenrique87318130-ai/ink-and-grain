@@ -9,38 +9,80 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CategoriaCategoryRouteImport } from './routes/categoria.$category'
+import { Route as ArtigoSlugRouteImport } from './routes/artigo.$slug'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategoriaCategoryRoute = CategoriaCategoryRouteImport.update({
+  id: '/categoria/$category',
+  path: '/categoria/$category',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArtigoSlugRoute = ArtigoSlugRouteImport.update({
+  id: '/artigo/$slug',
+  path: '/artigo/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/artigo/$slug': typeof ArtigoSlugRoute
+  '/categoria/$category': typeof CategoriaCategoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/artigo/$slug': typeof ArtigoSlugRoute
+  '/categoria/$category': typeof CategoriaCategoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/artigo/$slug': typeof ArtigoSlugRoute
+  '/categoria/$category': typeof CategoriaCategoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/sitemap.xml' | '/artigo/$slug' | '/categoria/$category'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/sitemap.xml' | '/artigo/$slug' | '/categoria/$category'
+  id:
+    | '__root__'
+    | '/'
+    | '/sitemap.xml'
+    | '/artigo/$slug'
+    | '/categoria/$category'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ArtigoSlugRoute: typeof ArtigoSlugRoute
+  CategoriaCategoryRoute: typeof CategoriaCategoryRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +90,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/categoria/$category': {
+      id: '/categoria/$category'
+      path: '/categoria/$category'
+      fullPath: '/categoria/$category'
+      preLoaderRoute: typeof CategoriaCategoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/artigo/$slug': {
+      id: '/artigo/$slug'
+      path: '/artigo/$slug'
+      fullPath: '/artigo/$slug'
+      preLoaderRoute: typeof ArtigoSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ArtigoSlugRoute: ArtigoSlugRoute,
+  CategoriaCategoryRoute: CategoriaCategoryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
