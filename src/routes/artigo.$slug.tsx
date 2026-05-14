@@ -6,6 +6,7 @@ import {
   ARTICLES,
 } from "@/data/articles";
 import { ArticleCard } from "@/components/ArticleCard";
+import { Footer } from "@/components/Masthead";
 
 export const Route = createFileRoute("/artigo/$slug")({
   loader: ({ params }) => {
@@ -224,6 +225,7 @@ function ArticlePage() {
           </div>
         </section>
       )}
+      <Footer />
     </article>
   );
 }
