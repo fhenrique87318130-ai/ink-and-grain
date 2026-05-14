@@ -17,10 +17,12 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const featured = ARTICLES.filter((a) => a.featured);
-  const lead = featured[0];
-  const sub = featured.slice(1, 3);
-  const rest = ARTICLES.filter((a) => !a.featured);
+  const sorted = [...ARTICLES].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+  const lead = sorted[0];
+  const sub = sorted.slice(1, 3);
+  const rest = sorted.slice(3);
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-10">
