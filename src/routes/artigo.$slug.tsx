@@ -70,7 +70,7 @@ export const Route = createFileRoute("/artigo/$slug")({
 });
 
 function ArticlePage() {
-  const { article } = Route.useLoaderData();
+  const { article } = Route.useLoaderData() as { article: NonNullable<ReturnType<typeof getArticleBySlug>> };
   const related = getRelated(article.slug);
   const allIndex = ARTICLES.findIndex((a) => a.slug === article.slug);
   const prev = ARTICLES[allIndex - 1];
