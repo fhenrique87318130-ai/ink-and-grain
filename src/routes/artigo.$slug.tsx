@@ -51,10 +51,11 @@ export const Route = createFileRoute("/artigo/$slug")({
   ),
   errorComponent: ({ error, reset }) => {
     const router = useRouter();
+    if (typeof console !== "undefined") console.error("Article route error:", error);
     return (
       <div className="mx-auto max-w-screen-md px-4 py-24 text-center">
         <h1 className="font-serif text-4xl font-black">Erro ao imprimir</h1>
-        <p className="mt-3 font-body text-muted-foreground">{error.message}</p>
+        <p className="mt-3 font-body text-muted-foreground">Não foi possível carregar este artigo.</p>
         <button
           onClick={() => {
             router.invalidate();
