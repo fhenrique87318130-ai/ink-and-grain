@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { CATEGORIES } from "@/data/articles";
+import { CATEGORIES } from "@/lib/articles-shared";
 
 const editionDate = new Date().toLocaleDateString("pt-BR", {
   weekday: "long",
@@ -61,6 +61,14 @@ export function Header() {
                 </Link>
               </li>
             ))}
+            <li className="ml-auto">
+              <Link
+                to="/admin"
+                className="border-b-2 border-transparent pb-0.5 text-accent hover:border-accent"
+              >
+                Admin
+              </Link>
+            </li>
           </ul>
         </div>
       </nav>

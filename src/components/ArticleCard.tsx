@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { type Article, formatDate } from "@/data/articles";
+import { type Article, formatDate } from "@/lib/articles-shared";
 
 export function ArticleCard({
   article,
@@ -54,7 +54,7 @@ export function ArticleCard({
         )}
         <div className="mt-4 flex items-center justify-between border-t border-foreground/30 pt-3 font-mono text-xs">
           <span className="uppercase tracking-widest">por {article.author}</span>
-          <span className="text-muted-foreground">{article.readMinutes} min</span>
+          <span className="text-muted-foreground">{article.read_minutes} min</span>
         </div>
       </div>
     </article>

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { ARTICLES, CATEGORIES } from "@/data/articles";
+import { CATEGORIES } from "@/lib/articles-shared";
 
 const BASE_URL = "";
 
@@ -8,6 +8,15 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
+        const { supabaseAdmin } = await import(
+          "@/integrations/supabase/client.server"
+        );
+        const { data } = await supabaseAdmin
+          .from("articles")
+          .select("slug,date")
+          .order("date", { ascending: false });
+        const articles = (data ?? []) as { slug: string; date: string }[];
+
         const entries = [
           { path: "/", changefreq: "daily", priority: "1.0" },
           ...CATEGORIES.map((c) => ({
@@ -15,7 +24,7 @@ export const Route = createFileRoute("/sitemap.xml")({
             changefreq: "weekly",
             priority: "0.7",
           })),
-          ...ARTICLES.map((a) => ({
+          ...articles.map((a) => ({
             path: `/artigo/${a.slug}`,
             lastmod: a.date,
             changefreq: "monthly",
