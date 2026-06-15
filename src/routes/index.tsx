@@ -1,6 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ARTICLES, CATEGORIES, formatDate } from "@/data/articles";
+import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { ArticleCard } from "@/components/ArticleCard";
+import { CATEGORIES, formatDate, type Article } from "@/lib/articles-shared";
+import { listArticles } from "@/lib/articles.functions";
+
+const articlesQO = queryOptions({
+  queryKey: ["articles"],
+  queryFn: () => listArticles(),
+});
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -13,32 +20,39 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(articlesQO),
   component: HomePage,
 });
 
 function HomePage() {
-  const sorted = [...ARTICLES].sort(
+  const { data: all } = useSuspenseQuery(articlesQO);
+  const sorted = [...all].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
-  const lead = sorted[0];
+  const lead: Article | undefined = sorted[0];
   const sub = sorted.slice(1, 3);
   const rest = sorted.slice(3);
 
+  if (!lead) {
+    return (
+      <div className="mx-auto max-w-screen-md p-16 text-center font-body italic text-muted-foreground">
+        As prensas estão sendo aquecidas — nenhum artigo publicado ainda.
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-10">
-      {/* Breaking ticker */}
       <div className="mb-10 flex items-center gap-4 border-y-2 border-foreground bg-foreground px-4 py-2 text-background">
         <span className="bg-accent px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-widest">
           Última hora
         </span>
         <p className="truncate font-mono text-xs uppercase tracking-widest">
-          {formatDate(new Date().toISOString())} · Edição diária · Pensamento longo num mundo curto · {ARTICLES.length} ensaios em circulação
+          {formatDate(new Date().toISOString())} · Edição diária · Pensamento longo num mundo curto · {all.length} ensaios em circulação
         </p>
       </div>
 
-      {/* Hero grid */}
       <section className="grid grid-cols-1 gap-0 border-y-2 border-foreground lg:grid-cols-12">
-        {/* Lead story */}
         <article className="border-foreground p-6 sm:p-10 lg:col-span-8 lg:border-r">
           <Link
             to="/categoria/$category"
@@ -55,19 +69,14 @@ function HomePage() {
           <p className="mt-6 max-w-3xl font-body text-lg leading-relaxed text-foreground/80 sm:text-xl">
             {lead.dek}
           </p>
-          <div className="mt-6 overflow-hidden border border-foreground bg-muted">
-            <img
-              src={lead.hero}
-              alt={lead.title}
-              className="aspect-[16/9] w-full object-cover grayscale"
-            />
-          </div>
-          <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-            Fig. 1.1 — {lead.title}
-          </p>
+          {lead.hero && (
+            <div className="mt-6 overflow-hidden border border-foreground bg-muted">
+              <img src={lead.hero} alt={lead.title} className="aspect-[16/9] w-full object-cover grayscale" />
+            </div>
+          )}
           <div className="mt-6 flex items-center justify-between border-t border-foreground/30 pt-4 font-mono text-xs uppercase tracking-widest">
             <span>por {lead.author}</span>
-            <span>{formatDate(lead.date)} · {lead.readMinutes} min de leitura</span>
+            <span>{formatDate(lead.date)} · {lead.read_minutes} min de leitura</span>
           </div>
           <Link
             to="/artigo/$slug"
@@ -78,13 +87,9 @@ function HomePage() {
           </Link>
         </article>
 
-        {/* Sub stories */}
         <div className="grid grid-cols-1 lg:col-span-4">
           {sub.map((a, i) => (
-            <article
-              key={a.slug}
-              className={`p-6 sm:p-8 ${i === 0 ? "border-b border-foreground" : ""}`}
-            >
+            <article key={a.slug} className={`p-6 sm:p-8 ${i === 0 ? "border-b border-foreground" : ""}`}>
               <Link
                 to="/categoria/$category"
                 params={{ category: a.category.toLowerCase() }}
@@ -97,61 +102,46 @@ function HomePage() {
                   {a.title}
                 </h3>
               </Link>
-              <p className="mt-3 font-body text-sm leading-relaxed text-foreground/70">
-                {a.dek}
-              </p>
+              <p className="mt-3 font-body text-sm leading-relaxed text-foreground/70">{a.dek}</p>
               <p className="mt-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                {a.author} · {a.readMinutes} min
+                {a.author} · {a.read_minutes} min
               </p>
             </article>
           ))}
         </div>
       </section>
 
-      {/* Ornament */}
-      <div className="my-16 text-center font-serif text-2xl tracking-[0.5em] text-foreground/40">
-        ✦ ✦ ✦
-      </div>
+      <div className="my-16 text-center font-serif text-2xl tracking-[0.5em] text-foreground/40">✦ ✦ ✦</div>
 
-      {/* Section header */}
-      <div className="mb-8 flex items-end justify-between border-b-2 border-foreground pb-3">
-        <h2 className="font-serif text-3xl font-black tracking-tighter sm:text-4xl">
-          Mais nesta edição
-        </h2>
-        <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          Página B · Seção de Ensaios
-        </span>
-      </div>
+      {rest.length > 0 && (
+        <>
+          <div className="mb-8 flex items-end justify-between border-b-2 border-foreground pb-3">
+            <h2 className="font-serif text-3xl font-black tracking-tighter sm:text-4xl">Mais nesta edição</h2>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+              Página B · Seção de Ensaios
+            </span>
+          </div>
+          <section className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+            {rest.map((a) => <ArticleCard key={a.slug} article={a} />)}
+          </section>
+        </>
+      )}
 
-      <section className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-        {rest.map((a) => (
-          <ArticleCard key={a.slug} article={a} />
-        ))}
-      </section>
-
-      {/* Inverted section — categorias */}
       <section className="mt-24 border-4 border-foreground bg-foreground p-8 text-background sm:p-12">
-        <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-background/60">
-          Índice editorial
-        </p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-background/60">Índice editorial</p>
         <h2 className="mt-3 font-serif text-4xl font-black tracking-tighter sm:text-6xl">
           Seis seções. <span className="text-accent">Um único critério:</span> ideias que duram.
         </h2>
         <ul className="mt-10 grid grid-cols-1 gap-0 border-t border-background/30 sm:grid-cols-2 lg:grid-cols-3">
           {CATEGORIES.map((c, i) => (
-            <li
-              key={c}
-              className={`border-b border-background/30 ${i % 3 !== 2 ? "lg:border-r" : ""} ${i % 2 !== 1 ? "sm:border-r lg:border-r" : ""}`}
-            >
+            <li key={c} className={`border-b border-background/30 ${i % 3 !== 2 ? "lg:border-r" : ""} ${i % 2 !== 1 ? "sm:border-r lg:border-r" : ""}`}>
               <Link
                 to="/categoria/$category"
                 params={{ category: c.toLowerCase() }}
                 className="group flex items-center justify-between p-6 transition-colors hover:bg-accent"
               >
                 <span className="font-serif text-2xl font-bold sm:text-3xl">{c}</span>
-                <span className="font-mono text-xs uppercase tracking-widest text-background/60 group-hover:text-background">
-                  Ler →
-                </span>
+                <span className="font-mono text-xs uppercase tracking-widest text-background/60 group-hover:text-background">Ler →</span>
               </Link>
             </li>
           ))}
