@@ -20,20 +20,12 @@ const ArticleInput = z.object({
   featured: z.boolean().default(false),
 });
 
-async function adminGuard(ctx: {
-  supabase: Awaited<ReturnType<typeof getAuthSupabase>>;
-  userId: string;
-}) {
-  const { data, error } = await ctx.supabase.rpc("has_role", {
-    _user_id: ctx.userId,
+async function assertAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase.rpc("has_role", {
+    _user_id: userId,
     _role: "admin",
   });
   if (error || !data) throw new Error("Forbidden");
-}
-
-type AuthCtx = { supabase: any; userId: string };
-async function getAuthSupabase(): Promise<any> {
-  return null as any;
 }
 
 export const listArticles = createServerFn({ method: "GET" }).handler(
@@ -46,7 +38,7 @@ export const listArticles = createServerFn({ method: "GET" }).handler(
       .select("*")
       .order("date", { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []) as Article[];
+    return (data ?? []) as unknown as Article[];
   },
 );
 
@@ -64,7 +56,7 @@ export const getArticleBySlug = createServerFn({ method: "GET" })
       .eq("slug", data.slug)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return (row as Article | null) ?? null;
+    return (row as unknown as Article | null) ?? null;
   });
 
 export const getArticlesByCategory = createServerFn({ method: "GET" })
@@ -81,42 +73,42 @@ export const getArticlesByCategory = createServerFn({ method: "GET" })
       .ilike("category", data.category)
       .order("date", { ascending: false });
     if (error) throw new Error(error.message);
-    return (rows ?? []) as Article[];
+    return (rows ?? []) as unknown as Article[];
   });
 
 export const createArticle = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => ArticleInput.parse(input))
   .handler(async ({ data, context }) => {
-    await adminGuard(context as AuthCtx);
-    const { supabase } = context as AuthCtx;
-    const { data: row, error } = await supabase
+    const ctx = context as { supabase: any; userId: string };
+    await assertAdmin(ctx.supabase, ctx.userId);
+    const { data: row, error } = await ctx.supabase
       .from("articles")
       .insert(data)
       .select()
       .single();
     if (error) throw new Error(error.message);
-    return row as Article;
+    return row as unknown as Article;
   });
 
 export const updateArticle = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ id: z.string().uuid(), patch: ArticleInput.partial() }).parse(
-      input,
-    ),
+    z
+      .object({ id: z.string().uuid(), patch: ArticleInput.partial() })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
-    await adminGuard(context as AuthCtx);
-    const { supabase } = context as AuthCtx;
-    const { data: row, error } = await supabase
+    const ctx = context as { supabase: any; userId: string };
+    await assertAdmin(ctx.supabase, ctx.userId);
+    const { data: row, error } = await ctx.supabase
       .from("articles")
       .update(data.patch)
       .eq("id", data.id)
       .select()
       .single();
     if (error) throw new Error(error.message);
-    return row as Article;
+    return row as unknown as Article;
   });
 
 export const deleteArticle = createServerFn({ method: "POST" })
@@ -125,9 +117,12 @@ export const deleteArticle = createServerFn({ method: "POST" })
     z.object({ id: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    await adminGuard(context as AuthCtx);
-    const { supabase } = context as AuthCtx;
-    const { error } = await supabase.from("articles").delete().eq("id", data.id);
+    const ctx = context as { supabase: any; userId: string };
+    await assertAdmin(ctx.supabase, ctx.userId);
+    const { error } = await ctx.supabase
+      .from("articles")
+      .delete()
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -135,9 +130,9 @@ export const deleteArticle = createServerFn({ method: "POST" })
 export const isCurrentUserAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context as AuthCtx;
-    const { data, error } = await supabase.rpc("has_role", {
-      _user_id: userId,
+    const ctx = context as { supabase: any; userId: string };
+    const { data, error } = await ctx.supabase.rpc("has_role", {
+      _user_id: ctx.userId,
       _role: "admin",
     });
     if (error) return false;
