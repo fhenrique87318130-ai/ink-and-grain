@@ -82,23 +82,6 @@ function CategoryPage() {
         </p>
       </header>
 
-      {/* Other categories strip */}
-      <div className="mt-8 flex flex-wrap items-center gap-3 border-b border-foreground pb-4">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          Outras seções:
-        </span>
-        {CATEGORIES.filter((c) => c !== category).map((c) => (
-          <Link
-            key={c}
-            to="/categoria/$category"
-            params={{ category: c.toLowerCase() }}
-            className="border border-foreground px-3 py-1 font-mono text-[10px] uppercase tracking-widest hover:bg-foreground hover:text-background"
-          >
-            {c}
-          </Link>
-        ))}
-      </div>
-
       {/* Grid */}
       {articles.length > 0 ? (
         <section className="mt-12 grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
